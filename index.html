@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dropout Risk Detection</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-50">
+
+  <div id="root"></div>
+
+  <!-- React & Babel CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+  <script type="text/babel">
+    function Navbar() {
+      return (
+        <nav className="flex justify-between items-center p-4 shadow bg-white sticky top-0 z-50">
+          <h1 className="text-xl font-bold text-purple-600">
+            Dropalert
+          </h1>
+          <ul className="flex gap-6 text-gray-700 font-medium">
+            <li className="hover:text-purple-600 cursor-pointer">Home</li>
+            <li className="hover:text-purple-600 cursor-pointer">About</li>
+            <li className="hover:text-purple-600 cursor-pointer">Services</li>
+            <li className="hover:text-purple-600 cursor-pointer">Contact</li>
+          </ul>
+        </nav>
+      );
+    }
+
+    function Hero() {
+      return (
+        <section className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-center py-20">
+          <h2 className="text-4xl font-bold mb-4 animate-bounce"
+            data-aos="fade-up" data-aos-duration="1000">
+            Welcome to Dropout Risk Detection
+          </h2>
+          <p className="mb-6 text-lg opacity-90"
+            data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300">
+            Empowering Students and Preventing Dropouts with AI & Counseling
+          </p>
+          <button
+            data-aos="fade-up"
+            data-aos-duration="1000"
+            data-aos-delay="600"
+            className="bg-gradient-to-r from-pink-500 to-orange-400 text-white font-semibold px-6 py-2 rounded-full shadow-lg hover:scale-105 transition duration-300"
+          >
+            Get Started
+          </button>
+        </section>
+      );
+    }
+
+    function Services() {
+      const services = [
+        { title: "Students Data", desc: "Students all basic informations", link: "students.html", animation: "fade-right" },
+        { title: "Risk Assessment", desc: "Identifies students at risk of dropping out.", link: "#", animation: "zoom-in" },
+        { title: "Counseling Services", desc: "Provides support and resources for at-risk students.", link: "#", animation: "fade-left" },
+      ];
+
+      return (
+        <section className="py-16 px-8 grid md:grid-cols-3 gap-8">
+          {services.map((s, i) => (
+            <div
+              key={i}
+              data-aos={s.animation}
+              data-aos-duration="1000"
+              data-aos-delay={i * 300} // delay each card
+              className="bg-white shadow-md rounded-xl p-6 text-center hover:shadow-2xl hover:scale-105 transition duration-300"
+            >
+              <h3 className="text-xl font-semibold mb-2">{s.title}</h3>
+              <p className="text-gray-600 mb-4">{s.desc}</p>
+              <a href={s.link}>
+                <button className="bg-gradient-to-r from-blue-500 to-green-400 text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition">
+                  Explore
+                </button>
+              </a>
+            </div>
+          ))}
+        </section>
+      );
+    }
+
+    function App() {
+      React.useEffect(() => { AOS.init(); }, []);
+      return (
+        <div>
+          <Navbar />
+          <Hero />
+          <Services />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>

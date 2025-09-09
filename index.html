@@ -39,7 +39,8 @@
         <section className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-center py-20">
           <h2 className="text-4xl font-bold mb-4 animate-bounce"
             data-aos="fade-up" data-aos-duration="1000">
-            Welcome to Dropout Risk Detection
+            Welcome to Dropalert
+            <img src="https://cdn-icons-gif.flaticon.com/6172/6172532.gif" alt="Dropalert" className="inline-block w-12 h-12 ml-2" />
           </h2>
           <p className="mb-6 text-lg opacity-90"
             data-aos="fade-up" data-aos-duration="1000" data-aos-delay="300">
@@ -58,34 +59,36 @@
     }
 
     function Services() {
-      const services = [
-        { title: "Students Data", desc: "Students all basic informations", link: "students.html", animation: "fade-right" },
-        { title: "Risk Assessment", desc: "Identifies students at risk of dropping out.", link: "#", animation: "zoom-in" },
-        { title: "Counseling Services", desc: "Provides support and resources for at-risk students.", link: "#", animation: "fade-left" },
-      ];
+  const services = [
+    { title: "Students Data", desc: "Students all basic informations", link: "students.html", animation: "fade-right", icon: "https://cdn-icons-gif.flaticon.com/15401/15401425.gif" },
+    { title: "Risk Assessment", desc: "Identifies students at risk of dropping out.", link: "#", animation: "zoom-in", icon: "https://cdn-icons-gif.flaticon.com/17702/17702121.gif" },
+    { title: "Counseling Services", desc: "Provides support and resources for at-risk students.", link: "#", animation: "fade-left", icon: "https://cdn-icons-gif.flaticon.com/15374/15374734.gif" },
+  ];
 
-      return (
-        <section className="py-16 px-8 grid md:grid-cols-3 gap-8">
-          {services.map((s, i) => (
-            <div
-              key={i}
-              data-aos={s.animation}
-              data-aos-duration="1000"
-              data-aos-delay={i * 300} // delay each card
-              className="bg-white shadow-md rounded-xl p-6 text-center hover:shadow-2xl hover:scale-105 transition duration-300"
-            >
-              <h3 className="text-xl font-semibold mb-2">{s.title}</h3>
-              <p className="text-gray-600 mb-4">{s.desc}</p>
-              <a href={s.link}>
-                <button className="bg-gradient-to-r from-blue-500 to-green-400 text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition">
-                  Explore
-                </button>
-              </a>
-            </div>
-          ))}
-        </section>
-      );
-    }
+  return (
+    <section className="py-16 px-8 grid md:grid-cols-3 gap-8">
+      {services.map((s, i) => (
+        <div
+          key={i}
+          data-aos={s.animation}
+          data-aos-duration="1000"
+          data-aos-delay={i * 300}
+          className="bg-white shadow-md rounded-xl p-6 text-center hover:shadow-2xl hover:scale-105 transition duration-300"
+        >
+          <img src={s.icon} alt={s.title} className="mx-auto mb-2 w-12 h-12" />
+          <h3 className="text-xl font-semibold mb-2">{s.title}</h3>
+          <p className="text-gray-600 mb-4">{s.desc}</p>
+          <a href={s.link}>
+            <button className="bg-gradient-to-r from-blue-500 to-green-400 text-white px-4 py-2 rounded-full shadow-md hover:scale-105 transition">
+              Explore
+            </button>
+          </a>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 
     function App() {
       React.useEffect(() => { AOS.init(); }, []);

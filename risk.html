@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Risk Assessment</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- XLSX for Excel upload -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- AOS for animations -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(120deg, #f0f4ff, #f9faff);
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .tooltip {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .card:hover .tooltip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    canvas.sparkline {
+      height: 40px !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<div class="min-h-screen flex">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-800 text-white p-6 hidden md:block">
+    <h2 class="text-xl font-bold mb-6">Risk Manager</h2>
+    <ul class="space-y-2 text-sm">
+      <button onclick="window.location.href='index.html'" 
+        class="w-full flex items-center gap-5 bg-green-700 hover:bg-green-800 py-2 px-4 rounded mb-4">
+        ← <span>Back</span>
+      </button>
+      <li><a href="#" onclick="showSection('system-section','systemTab')" id="systemTab" class="sidebar-btn active">System Info</a></li>
+      <li><a href="#" onclick="showSection('risk-section','riskTab')" id="riskTab" class="sidebar-btn">Risks</a></li>
+      <li><a href="#" onclick="showSection('alert-section','alertTab')" id="alertTab" class="sidebar-btn">Alerts</a></li>
+      <li><a href="#" onclick="showSection('major-section','majorTab')" id="majorTab" class="sidebar-btn">Students' Risk Major</a></li>
+      </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-6 space-y-6">
+
+    <!-- 🔹 System Info Section --> <div id="system-section" data-aos="fade-up">
+       <h1 class="text-3xl font-bold text-purple-700 mb-3">System Information</h1>
+        <p class="text-gray-700 leading-relaxed mb-6"> Our Risk Assessment System identifies students who may be at risk of dropping out. It analyzes academic performance, attendance, participation, and behavior. Each student is assigned a risk score, and high-risk students are flagged for early intervention. The dashboard provides a quick overview of risk levels, updated weekly. Counselors can design personalized plans, and administrators gain systemic insights. </p> <!-- Enhanced Summary Dashboard --> 
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6"> 
+          <!-- Overall Risk --> 
+          <div class="card p-6 text-center" data-aos="zoom-in"> 
+            <p class="text-sm text-gray-500 mb-2">Overall Risk</p>
+             <canvas id="riskCircle" width="100" height="100" class="mx-auto mb-3"></canvas> 
+             <p id="overallRiskCounter" class="text-2xl font-bold text-yellow-500">0%</p> 
+             <canvas id="spark1" class="sparkline mt-3"></canvas> <div class="tooltip">Shows the average risk across all students.</div> 
+            </div> 
+            <!-- At Risk Students --> <div class="card p-6 text-center" data-aos="zoom-in" data-aos-delay="100"> 
+              <p class="text-sm text-gray-500 mb-2">At Risk Students</p> 
+              <p id="atRiskCounter" class="text-3xl font-bold text-red-500 mb-3">0</p>
+               <canvas id="spark2" class="sparkline"></canvas>
+                <div class="tooltip">Number of students currently flagged as at risk.</div>
+               </div> 
+               <!-- Interventions Planned -->
+                 <div class="card p-6 text-center" data-aos="zoom-in" data-aos-delay="200"> 
+                  <p class="text-sm text-gray-500 mb-2">Interventions Planned</p>
+                   <p id="interventionCounter" class="text-3xl font-bold text-green-600 mb-3">0</p>
+                   <canvas id="spark3" class="sparkline"></canvas>
+                   <div class="tooltip">Planned steps to help students improve performance.</div>
+                 </div>
+               </div>
+             </div>
+             
+
+    <!-- 🔹 Risk Dashboard Section -->
+    <div id="risk-section" class="hidden" data-aos="fade-up">
+      <h2 class="text-2xl font-bold text-purple-700 mb-6">Risk Assessment Dashboard</h2>
+
+      <!-- Excel Upload -->
+      <div class="card p-6 mb-6" data-aos="fade-up">
+        <p class="mb-2 font-semibold text-gray-700">Upload Student Risk Excel File</p>
+        <input type="file" id="excelFile" accept=".xlsx" class="border p-2 rounded w-full bg-gray-50">
+        <p class="text-xs text-gray-500 mt-2">Supported format: student_risk_master.xlsx</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="card p-6" data-aos="fade-up">
+          <h3 class="text-lg font-semibold mb-4">Risk Band Distribution</h3>
+          <canvas id="riskPie"></canvas>
+        </div>
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="100">
+          <h3 class="text-lg font-semibold mb-4">Average Risk by Semester</h3>
+          <canvas id="semesterBar"></canvas>
+        </div>
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="200">
+          <h3 class="text-lg font-semibold mb-4">Gender vs Risk</h3>
+          <canvas id="genderStack"></canvas>
+        </div>
+        <div class="card p-6" data-aos="fade-up" data-aos-delay="300">
+          <h3 class="text-lg font-semibold mb-4">Risk Trend (by Rank)</h3>
+          <canvas id="trendLine"></canvas>
+        </div>
+      </div>
+    </div>
+<!-- 🔹 Alerts Section -->
+<div id="alert-section" class="hidden" data-aos="fade-up">
+  <h2 class="text-2xl font-bold text-purple-700 mb-6">Student Alerts</h2>
+  <div class="card p-6 overflow-x-auto">
+    <table class="w-full text-left border">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="p-2">Name</th>
+          <th class="p-2">Semester</th>
+          <th class="p-2">Gender</th>
+          <th class="p-2">Risk %</th>
+          <th class="p-2">Risk Band</th>
+        </tr>
+      </thead>
+      <tbody id="alertTable"></tbody>
+    </table>
+  </div>
+</div>
+    <!-- 🔹 Students' Risk Major -->
+    <div id="major-section" class="hidden" data-aos="fade-up">
+      <h2 class="text-2xl font-bold text-purple-700 mb-6">Students' Risk Major</h2>
+      <form id="studentForm" class="card p-6 space-y-4">
+        <input type="text" id="name" placeholder="Name" class="w-full border p-2 rounded">
+        <input type="number" id="age" placeholder="Age" class="w-full border p-2 rounded">
+        <input type="text" id="course" placeholder="Course" class="w-full border p-2 rounded">
+        <input type="text" id="risk" placeholder="Risk Level" class="w-full border p-2 rounded">
+        <button type="button" onclick="addStudent()">Add Student</button>
+      </form>
+      <div class="card p-6 overflow-x-auto mt-6">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="p-2">Name</th>
+              <th class="p-2">Age</th>
+              <th class="p-2">Course</th>
+              <th class="p-2">Risk</th>
+            </tr>
+          </thead>
+          <tbody id="studentTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ✅ Section switching
+  function showSection(sectionId, tabId) {
+    const sections = ["system-section","risk-section","alert-section","major-section"];
+    const tabs = ["systemTab","riskTab","alertTab","majorTab"];
+    sections.forEach(s => document.getElementById(s).classList.add("hidden"));
+    tabs.forEach(t => document.getElementById(t).classList.remove("active"));
+    document.getElementById(sectionId).classList.remove("hidden");
+    document.getElementById(tabId).classList.add("active");
+  }
+
+  // ✅ Risk Charts instances
+  const riskPieChart = new Chart(document.getElementById('riskPie'), {
+    type:'pie',
+    data:{ labels:["Very High","High","Medium","Low"], datasets:[{ data:[0,0,0,0], backgroundColor:["#ef4444","#f59e0b","#3b82f6","#10b981"] }] }
+  });
+
+  const semesterBarChart = new Chart(document.getElementById('semesterBar'), {
+    type:'bar',
+    data:{ labels:[], datasets:[{ label:"Avg Risk %", data:[], backgroundColor:"#6366f1" }] }
+  });
+
+  const genderStackChart = new Chart(document.getElementById('genderStack'), {
+    type:'bar',
+    data:{ labels:["Very High","High","Medium","Low"], datasets:[
+      { label:"Male", data:[0,0,0,0], backgroundColor:"#3b82f6" },
+      { label:"Female", data:[0,0,0,0], backgroundColor:"#ec4899" }
+    ] },
+    options:{ scales:{ x:{stacked:true}, y:{stacked:true} } }
+  });
+
+  const trendLineChart = new Chart(document.getElementById('trendLine'), {
+    type:'line',
+    data:{ labels:[], datasets:[{ label:"Risk % by Rank", data:[], borderColor:"#8b5cf6", fill:false, tension:0.3 }] }
+  });
+  // 🔹 System Info Charts
+let riskCircleChart, spark1Chart, spark2Chart, spark3Chart;
+
+// ✅ Initialize Circle Chart
+riskCircleChart = new Chart(document.getElementById("riskCircle"), {
+  type: "doughnut",
+  data: {
+    labels: ["Risk", "Remaining"],
+    datasets: [{
+      data: [0, 100], // default placeholder
+      backgroundColor: ["#facc15", "#e5e7eb"],
+      cutout: "70%"
+    }]
+  },
+  options: { plugins: { legend: { display: false } } }
+});
+
+// ✅ Helper for sparklines
+function makeSparkline(ctx, values, color) {
+  return new Chart(ctx, {
+    type: "line",
+    data: { 
+      labels: values.map((_, i) => i + 1),
+      datasets: [{ data: values, borderColor: color, fill: false, tension: 0.3 }]
+    },
+    options: { plugins:{legend:{display:false}}, scales:{x:{display:false}, y:{display:false}} }
+  });
+}
+
+// ✅ Default sparklines
+spark1Chart = makeSparkline(document.getElementById("spark1"), [0,0,0], "#facc15");
+spark2Chart = makeSparkline(document.getElementById("spark2"), [0,0,0], "#ef4444");
+spark3Chart = makeSparkline(document.getElementById("spark3"), [0,0,0], "#10b981");
+
+
+  // ✅ 🔹 Demo initialization (runs on page load before Excel upload)
+  riskPieChart.data.datasets[0].data = [12, 8, 5, 15];
+  riskPieChart.update();
+
+  semesterBarChart.data.labels = ["Sem 1","Sem 2","Sem 3"];
+  semesterBarChart.data.datasets[0].data = [35, 42, 28];
+  semesterBarChart.update();
+
+  genderStackChart.data.datasets[0].data = [5,4,6,3]; // Male
+  genderStackChart.data.datasets[1].data = [7,4,3,2]; // Female
+  genderStackChart.update();
+
+  trendLineChart.data.labels = Array.from({length: 10}, (_, i) => i+1);
+  trendLineChart.data.datasets[0].data = [60,58,55,52,50,48,46,44,42,40];
+  trendLineChart.update();
+
+  // ✅ Excel Upload Handling
+  document.getElementById("excelFile").addEventListener("change", handleFile);
+
+  async function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const data = await file.arrayBuffer();
+  const workbook = XLSX.read(data);
+
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const json = XLSX.utils.sheet_to_json(sheet);
+
+  // ✅ Risk Band distribution
+  const bandCounts = { "Very High": 0, "High": 0, "Medium": 0, "Low": 0 };
+  const semesterSums = {};
+  const semesterCounts = {};
+  const genderCounts = { Male: [0, 0, 0, 0], Female: [0, 0, 0, 0] };
+  const trendData = [];
+
+  let totalRisk = 0, count = 0;
+  let totalAttendance = 0, totalAssignments = 0;
+
+  json.forEach((row, i) => {
+    const risk = row.RiskPercent || 0;
+    const sem = row.Semester || "Unknown";
+    const gender = row.Gender || "Unknown";
+    const attendance = row.Attendance || 0;
+    const assignments = row.Assignments || 0;
+
+    totalRisk += risk;
+    totalAttendance += attendance;
+    totalAssignments += assignments;
+    count++;
+
+    // Risk band classification
+    let bandIndex = -1;
+    if (risk > 45) {
+      bandCounts["Very High"]++;
+      bandIndex = 0;
+    } else if (risk > 35) {
+      bandCounts["High"]++;
+      bandIndex = 1;
+    } else if (risk > 25) {
+      bandCounts["Medium"]++;
+      bandIndex = 2;
+    } else {
+      bandCounts["Low"]++;
+      bandIndex = 3;
+    }
+
+    // Semester average
+    if (!semesterSums[sem]) {
+      semesterSums[sem] = 0;
+      semesterCounts[sem] = 0;
+    }
+    semesterSums[sem] += risk;
+    semesterCounts[sem]++;
+
+    // Gender distribution
+    if (bandIndex >= 0 && genderCounts[gender]) {
+      genderCounts[gender][bandIndex]++;
+    }
+
+    // Trend data
+    trendData.push({ x: i + 1, y: risk });
+  });
+
+  // ✅ Averages
+  const avgRiskPercent = count ? (totalRisk / count).toFixed(2) : 0;
+  const avgAttendance = count ? (totalAttendance / count).toFixed(2) : 0;
+  const avgAssignments = count ? (totalAssignments / count).toFixed(2) : 0;
+
+  // ✅ Update System Info counters
+document.getElementById("overallRiskCounter").textContent = avgRiskPercent + "%";
+document.getElementById("atRiskCounter").textContent = bandCounts["High"] + bandCounts["Very High"]; 
+document.getElementById("interventionCounter").textContent = Math.round(json.length * 0.3); // fake example: 30% interventions planned
+
+// ✅ Update Circle Chart
+riskCircleChart.data.datasets[0].data = [avgRiskPercent, 100 - avgRiskPercent];
+riskCircleChart.update();
+
+// ✅ Update Sparklines
+spark1Chart.data.datasets[0].data.push(avgRiskPercent);
+if (spark1Chart.data.datasets[0].data.length > 7) spark1Chart.data.datasets[0].data.shift();
+spark1Chart.update();
+
+spark2Chart.data.datasets[0].data.push(bandCounts["High"] + bandCounts["Very High"]);
+if (spark2Chart.data.datasets[0].data.length > 7) spark2Chart.data.datasets[0].data.shift();
+spark2Chart.update();
+
+spark3Chart.data.datasets[0].data.push(Math.round(json.length * 0.3));
+if (spark3Chart.data.datasets[0].data.length > 7) spark3Chart.data.datasets[0].data.shift();
+spark3Chart.update();
+
+
+  // ✅ Update Pie Chart (Risk Bands)
+  riskPieChart.data.datasets[0].data = [
+    bandCounts["Very High"],
+    bandCounts["High"],
+    bandCounts["Medium"],
+    bandCounts["Low"]
+  ];
+  riskPieChart.update();
+
+  // ✅ Update Bar Chart (Semester Avg)
+  semesterBarChart.data.labels = Object.keys(semesterSums);
+  semesterBarChart.data.datasets[0].data = Object.keys(semesterSums).map(
+    s => (semesterSums[s] / semesterCounts[s]).toFixed(2)
+  );
+  semesterBarChart.update();
+
+  // ✅ Update Gender Stacked Bar
+  genderStackChart.data.datasets[0].data = genderCounts["Male"];
+  genderStackChart.data.datasets[1].data = genderCounts["Female"];
+  genderStackChart.update();
+
+  // ✅ Update Trend Line
+  trendLineChart.data.labels = trendData.map(p => p.x);
+  trendLineChart.data.datasets[0].data = trendData.map(p => p.y);
+  trendLineChart.update();
+
+  // ✅ Populate Alerts Table
+const alertTable = document.getElementById("alertTable");
+alertTable.innerHTML = ""; // reset table
+
+json.forEach(row => {
+  const risk = row.RiskPercent || 0;
+  let band = "Low";
+  if (risk > 45) band = "Very High";
+  else if (risk > 35) band = "High";
+  else if (risk > 25) band = "Medium";
+
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="p-2">${row.Name || "N/A"}</td>
+    <td class="p-2">${row.Semester || "N/A"}</td>
+    <td class="p-2">${row.Gender || "N/A"}</td>
+    <td class="p-2">${risk}%</td>
+    <td class="p-2 font-semibold ${
+      band === "Very High" ? "text-red-600" :
+      band === "High" ? "text-orange-500" :
+      band === "Medium" ? "text-yellow-500" :
+      "text-green-600"
+    }">${band}</td>
+  `;
+  alertTable.appendChild(tr);
+});
+}
+  function animateCounter(id, target, suffix="") {
+    const el = document.getElementById(id);
+    let start = 0;
+    const duration = 1000;
+    const step = Math.ceil((target - start) / (duration / 100));
+    const timer = setInterval(() => {
+      start += step;
+      el.textContent = start + suffix;
+      if (start >= target) {
+        clearInterval(timer);
+        el.textContent = target + suffix;
+      }
+    }, 100);
+  }
+  
+</script>
+
+
+<!-- Load AOS last -->
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script> AOS.init(); </script>
+</body>
+</html>
